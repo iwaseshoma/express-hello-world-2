@@ -7,20 +7,23 @@ expressWs(app)
 const port = process.env.PORT || 3001
 let connects = []
 
+const html = `
+<!DOCTYPE html>
+...
+`
+
 app.use(express.static('public'))
-app.get('/', (req, res) => res.type('html').send(html));
-app.get('/status', (req, res) => res.json({status: 'ok'}));
-app.get('/dump', (req, res) => res.json({headers: req.rawHeaders}));
+app.get('/', (req, res) => res.type('html').send(html))
+app.get('/status', (req, res) => res.json({status: 'ok'}))
+app.get('/dump', (req, res) => res.json({headers: req.rawHeaders}))
 
 app.ws('/ws', (ws, req) => {
   connects.push(ws)
 
   ws.on('message', (message) => {
     console.log('Received:', message)
-
     connects.forEach((socket) => {
       if (socket.readyState === 1) {
-        // Check if the connection is open
         socket.send(message)
       }
     })
@@ -31,9 +34,12 @@ app.ws('/ws', (ws, req) => {
   })
 })
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`)
 })
+
+server.keepAliveTimeout = 120 * 1000
+server.headersTimeout = 120 * 1000
 const html = `
 <!DOCTYPE html>
 <html>
