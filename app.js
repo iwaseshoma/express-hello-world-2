@@ -2,7 +2,9 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.get("/", (req, res) => res.type('html').send(html));
+app.get('/', (req, res) => res.type('html').send(html));
+app.get('/status', (req, res) => res.json({status: 'ok'}));
+app.get('/dump', (req, res) => res.json({headers: req.rawHeaders}));
 
 const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
