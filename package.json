@@ -14,16 +14,6 @@
     "start": "node app.js"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "express": "^5.0.0",
-    "express-ws": "^5.0.2"
-  },
-  "bugs": {
-    "url": "https://github.com/render-examples/express-hello-world/issues"
-  },
-  "homepage": "https://github.com/render-examples/express-hello-world#readme"
-}
-=======
     "express": "^4.18.2",
     "express-ws": "^5.0.2"
   },
@@ -31,4 +21,3 @@
     "node": ">=14"
   }
 }
->>>>>>> ded58be0aa76f7bf79d395ac2280e7e4f9e73123
