@@ -49,6 +49,14 @@
         const myId = self.crypto.randomUUID().substr(0, 8)
 
         const form = document.querySelector('.form')
+        const messages = document.querySelector('.messages')
+
+        ws.onmessage = function (e) {
+          const li = document.createElement('li')
+          li.textContent = e.data
+          messages.appendChild(li)
+          messages.scrollTop = messages.scrollHeight
+        }
 
         form.onsubmit = function (e) {
           e.preventDefault()
