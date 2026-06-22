@@ -6,7 +6,7 @@ expressWs(app)
 
 const port = process.env.PORT || 3001
 let connects = []
-let history = []  // メッセージ履歴を保存
+let history = []
 
 app.use(express.static('public'))
 
@@ -27,8 +27,8 @@ app.ws('/ws', (ws, req) => {
   })
 
   ws.on('message', (message) => {
-    console.log('Received:', message)
-    history.push(message)  // 履歴に追加
+    console.log('Received message type:', JSON.parse(message).type)
+    history.push(message)
 
     connects.forEach((socket) => {
       if (socket.readyState === 1) {

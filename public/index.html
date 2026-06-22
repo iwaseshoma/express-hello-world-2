@@ -5,10 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chat App</title>
     <style>
-      .chat {
+      body {
+        display: flex;
+        height: 100vh;
+        margin: 0;
+      }
+      .left {
+        width: 50%;
         display: flex;
         flex-direction: column;
-        height: 100vh;
+        border-right: 1px solid #ccc;
+      }
+      .right {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+        overflow-y: auto;
+        background: #f9f9f9;
+      }
+      .right h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+        color: #555;
+      }
+      .image-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+      }
+      .image-list img {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #ccc;
       }
       .messages {
         flex: 1;
@@ -18,6 +49,13 @@
         margin: 0;
       }
       .form {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 6px;
+        border-top: 1px solid #ccc;
+      }
+      .input-row {
         display: flex;
       }
       .input {
@@ -31,20 +69,43 @@
         background: #eee;
         cursor: pointer;
       }
+      .image-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .image-submit {
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        background: #eee;
+        cursor: pointer;
+      }
       .system {
         color: gray;
         font-style: italic;
         text-align: center;
+        padding: 4px;
       }
     </style>
   </head>
   <body>
-    <div class="chat">
+    <div class="left">
       <ul class="messages"></ul>
-      <form class="form">
-        <input class="input" autocomplete="off" />
-        <button class="submit">Send</button>
-      </form>
+      <div class="form">
+        <div class="input-row">
+          <input class="input" autocomplete="off" placeholder="メッセージを入力" />
+          <button class="submit">Send</button>
+        </div>
+        <div class="image-row">
+          <input type="file" class="file-input" accept="image/*" />
+          <button class="image-submit">画像を送信</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <h2>受信した画像</h2>
+      <div class="image-list"></div>
     </div>
 
     <script>
@@ -53,37 +114,63 @@
         const ws = new WebSocket(host + '/ws')
         const myId = self.crypto.randomUUID().substr(0, 8)
 
-        const form = document.querySelector('.form')
         const messages = document.querySelector('.messages')
+        const imageList = document.querySelector('.image-list')
 
-        form.onsubmit = function (e) {
+        // テキスト送信
+        const input = document.querySelector('.input')
+        const submitBtn = document.querySelector('.submit')
+        submitBtn.addEventListener('click', (e) => {
           e.preventDefault()
-          const input = document.querySelector('.input')
           const text = input.value
+          if (!text) return
           ws.send(JSON.stringify({ type: 'chat', id: myId, text }))
           input.value = ''
           input.focus()
-        }
+        })
 
+        // 画像送信
+        const fileInput = document.querySelector('.file-input')
+        const imageSubmit = document.querySelector('.image-submit')
+        imageSubmit.addEventListener('click', () => {
+          const file = fileInput.files[0]
+          if (!file) return
+
+          const reader = new FileReader()
+          reader.onload = function (e) {
+            const base64 = e.target.result
+            ws.send(JSON.stringify({ type: 'image', id: myId, data: base64 }))
+            fileInput.value = ''
+          }
+          reader.readAsDataURL(file)
+        })
+
+        // 受信
         ws.onmessage = function (msg) {
           const data = JSON.parse(msg.data)
-          const li = document.createElement('li')
 
           if (data.type === 'system') {
-            // 入室・退室通知
+            const li = document.createElement('li')
             li.textContent = data.text
             li.classList.add('system')
+            messages.appendChild(li)
+            messages.scrollTop = messages.scrollHeight
+
           } else if (data.type === 'chat') {
-            // チャットメッセージ
+            const li = document.createElement('li')
             if (data.id === myId) {
               li.textContent = `(自分): ${data.text}`
             } else {
               li.textContent = `${data.id}: ${data.text}`
             }
-          }
+            messages.appendChild(li)
+            messages.scrollTop = messages.scrollHeight
 
-          messages.appendChild(li)
-          messages.scrollTop = messages.scrollHeight
+          } else if (data.type === 'image') {
+            const img = document.createElement('img')
+            img.src = data.data
+            imageList.appendChild(img)
+          }
         }
 
         ws.onerror = function (error) {
