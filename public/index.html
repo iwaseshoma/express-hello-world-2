@@ -80,6 +80,21 @@
         background: #eee;
         cursor: pointer;
       }
+      .color-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .color-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+      }
+      .color-btn.selected {
+        border-color: #333;
+      }
       .system {
         color: gray;
         font-style: italic;
@@ -92,6 +107,13 @@
     <div class="left">
       <ul class="messages"></ul>
       <div class="form">
+        <div class="color-row">
+          <span style="font-size:13px; color:#555;">文字色：</span>
+          <button class="color-btn selected" data-color="black" style="background:black;"></button>
+          <button class="color-btn" data-color="red" style="background:red;"></button>
+          <button class="color-btn" data-color="blue" style="background:blue;"></button>
+          <button class="color-btn" data-color="green" style="background:green;"></button>
+        </div>
         <div class="input-row">
           <input class="input" autocomplete="off" placeholder="メッセージを入力" />
           <button class="submit">Send</button>
@@ -117,6 +139,16 @@
         const messages = document.querySelector('.messages')
         const imageList = document.querySelector('.image-list')
 
+        // 文字色の選択
+        let selectedColor = 'black'
+        document.querySelectorAll('.color-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.color-btn').forEach((b) => b.classList.remove('selected'))
+            btn.classList.add('selected')
+            selectedColor = btn.dataset.color
+          })
+        })
+
         // テキスト送信
         const input = document.querySelector('.input')
         const submitBtn = document.querySelector('.submit')
@@ -124,7 +156,7 @@
           e.preventDefault()
           const text = input.value
           if (!text) return
-          ws.send(JSON.stringify({ type: 'chat', id: myId, text }))
+          ws.send(JSON.stringify({ type: 'chat', id: myId, text, color: selectedColor }))
           input.value = ''
           input.focus()
         })
@@ -163,6 +195,7 @@
             } else {
               li.textContent = `${data.id}: ${data.text}`
             }
+            li.style.color = data.color || 'black'  // 受信した色を適用
             messages.appendChild(li)
             messages.scrollTop = messages.scrollHeight
 
